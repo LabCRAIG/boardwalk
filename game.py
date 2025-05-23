@@ -36,7 +36,7 @@ class Game():
         return input("Your move: ")
     
     def get_state(self):
-        return (deepcopy(self.board.layout), self.current_player)
+        return (deepcopy(self.board.layout), self.current_player, self.turn, ())
     
     def perform_move(self, move):
         if is_placement(move):
