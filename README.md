@@ -112,6 +112,7 @@ The game state is a data structure ideally represented as a tuple. This tuple ha
 
 * Board layout: the layout matrix of the `board` attribute. This is a numpy array of strings, as detailed in the `Board` class. For the sake of code security, return a `deepcopy` of `self.board.layout` rather than a pointer to the actual `layout` attribute.
 * Current player: the `current_player` attribute (of a type defined by the user, see the Attributes section above).
+* Current turn: the `round` attribute.
 * Additional parameters: a list of variables containing user-defined attributes, any deemed necessary to define a unique state.
 
 Default behavior: returns a tuple with the parameters, with the third element being an empty list.
