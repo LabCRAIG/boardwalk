@@ -151,6 +151,9 @@ class Board():
 
         return header
     
+    def __getitem__(self, index):
+        return self.layout[index]
+    
 if __name__ == '__main__':
     pass
     

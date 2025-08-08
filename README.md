@@ -213,6 +213,8 @@ The `Board` class can be used as-is, without the need to create a subclass. All 
 
 `height` and `width`, integers that represent the total height and width of the board (the exact values passed to the constructor).
 
+Elements of the board can be accessed by subscripting the board object itself (e.g. `board[1,2]`), to avoid having to access the `layout` attribute. This is read-only, for the sake of parsing the state of the board. Directly modifying the `layout` is bad practice, and the board should be modified using the `place_piece` and `move_piece` methods detailed below.
+
 There are two reserved characters for spaces:
 
 * The underscore `'_'` is the `BLANK` space, which represents a vacant space a piece can occupy.
