@@ -1,14 +1,14 @@
 import re
 import numpy as np
 from copy import deepcopy
-from enum import Enum
 from math import log10
 
 class Game():
-    def __init__(self, board):
+    def __init__(self, board, ai_players = {}):
         self.board = board
-        self.round = 1
+        self.turn = 1
         self.current_player = self.initial_player()
+        self.ai_players = ai_players
 
     #Final
     def game_loop(self):
@@ -29,14 +29,21 @@ class Game():
                 return winner
 
             self.current_player = self.next_player()
-            self.round = self.round_counter()
+            self.turn = self.turn_counter()
 
     # Optionally overridable 
     def prompt_current_player(self):
+        if self.current_player in self.ai_players:
+            player = self.ai_players[self.current_player]
+            game_state = self.get_state()
+            return player.get_action(game_state)
+
         return input("Your move: ")
     
     def get_state(self):
-        return (deepcopy(self.board.layout), self.current_player, self.round, ())
+        return {'board' : deepcopy(self.board.layout),
+                'current_player' : self.current_player,
+                'turn' : self.turn}
     
     def perform_move(self, move):
         if is_placement(move):
@@ -50,8 +57,8 @@ class Game():
         else:
             print(f'Player {winner} wins!')
     
-    def round_counter(self):
-        return self.round + 1
+    def turn_counter(self):
+        return self.turn + 1
     
     def initial_player(self):
         return 0

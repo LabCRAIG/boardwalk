@@ -50,11 +50,12 @@ This documentation splits the `Game` class's methods into three categories:
 
 #### Game Attributes
 
-By default, the `Game` class only has three attributes:
+By default, the `Game` class only has four attributes:
 
 * `board`, an object of class `Board` which will store the pieces in play and their placements. This should only ever reference the same object through the entire game's duration, though the state of the board will be modified by several methods, as detailed further below.
-* `round`, an integer which stores the current round of the game, beginning at 1. This will be updated within the game loop by the `round_counter` method.
+* `turn`, an integer which stores the current turn of the game, beginning at 1. This will be updated within the game loop by the `turn_counter` method.
 * `current_player`, an identifier of the next player to make a move. This will be updated within the game loop by the `next_player` method. It is best practice to define an enum within your subclass to represent the players as integers, and the `next_player` and `get_winner` methods will be assumed to return integers in this documentation.
+* `ai_players`, a dictionary containing the instances of the models who will be playing the game, indexed by integers corresponding to their respective enums. By default, this is empty, indicating that all players are human. View [Appendix B](#appendix-b-ai-players) for more details.
 
 These are all initialized within the class constructor. Additional variables, such as flags or counters, might be necessary to define your game states and game-specific rules. These are handled by the user when implementing the subclass.
 
@@ -68,7 +69,6 @@ Below is the code for the method, to illustrate the contexts in which the other 
 def game_loop(self):
     while True:
         print(self.board)
-        
         valid = False
         while not valid:
             move = self.prompt_current_player()
@@ -83,14 +83,16 @@ def game_loop(self):
             return winner
 
         self.current_player = self.next_player()
-        self.round = self.round_counter()
+        self.turn = self.turn_counter()
 ```
 
 #### Optionally overridable methods
 
-`__init__(self, board : Board)`: The constructor method.
+`__init__(self, board : Board, ai_players : dict[int, AIPlayer] = {})`: The constructor method.
 
-Default behavior: it receives the `Board` object that will be assigned to the `board` attribute. It sets the `round` attribute to 1, and calls the `initial_player` method to assign an initial value to the `current_player` attribute.
+Default behavior: it receives the `Board` object that will be assigned to the `board` attribute. It sets the `turn` attribute to 1, and calls the `initial_player` method to assign an initial value to the `current_player` attribute.
+
+The `ai_players` parameter is optional, and is a dictionary containing the instances of the models who will be playing the game, indexed by integers corresponding to their respective enums. Information on how AI players are handled is covered in [Appendix B](#appendix-b-ai-players).
 
 Override cases: when necessary to instantiate any additional attributes, perhaps ones passed as parameters.
 
@@ -98,11 +100,23 @@ Override cases: when necessary to instantiate any additional attributes, perhaps
 
 `prompt_current_player(self) -> str`: Prompts the player to input a move and returns their input.
 
-Default behavior: it's a simple call of the standard Python `input` function with the prompt `"Your move: "`
+Default behavior: asks the player for their move via a string input. In case the player is an AI agent, it gives them the game state and then waits for a move string. The standard implementation is provided below:
+
+```python
+def prompt_current_player(self):
+    if self.current_player in self.ai_players:
+        player = self.ai_players[self.current_player]
+        game_state = self.get_state()
+        return player.get_action(game_state)
+
+    return input("Your move: ")
+```
 
 Override cases: when you wish to provide a personalized prompt string (such as one that informs the current player), or when you want to preprocess the returned string. In case of override, the `super` method will probably not be used.
 
-Preprocessing the move and allowing for more flexible player input requires an understanding of standard move formatting, as defined in [the appendix](#appendix-moves).
+Preprocessing the move and allowing for more flexible player input requires an understanding of standard move formatting, as defined in [Appendix A](#appendix-a-moves).
+
+When overriding, one must account for the AI agent interface, if their use is intended. If the game is programmed with a non-standard move format, then either the agent must provide their action in that same format, or the overridden method must preprocess it to fit the defined format. For more information regarding AI agents, see [Appendix B](#appendix-b-ai-players).
 
 ---
 
@@ -112,7 +126,6 @@ The game state is a data structure ideally represented as a tuple. This tuple ha
 
 * Board layout: the layout matrix of the `board` attribute. This is a numpy array of strings, as detailed in the `Board` class. For the sake of code security, return a `deepcopy` of `self.board.layout` rather than a pointer to the actual `layout` attribute.
 * Current player: the `current_player` attribute (of a type defined by the user, see the Attributes section above).
-* Current turn: the `round` attribute.
 * Additional parameters: a list of variables containing user-defined attributes, any deemed necessary to define a unique state.
 
 Default behavior: returns a tuple with the parameters, with the third element being an empty list.
@@ -130,7 +143,7 @@ Override cases: two different situations, which may apply simultaneously:
 * The move directly affects the pieces on the board in other ways than simply reallocating the played piece, such as by modifying other pieces (e.g. captures in Othello) or the played piece itself (e.g. promotions in Chess).
 * The move changes game state variables such as counters or flags.
 
-It is recommended to call upon the `super` method at the beginning of your own implementation, and you might in fact wish to use it to resolve other effects on the boards. This requires an understanding of standard move formatting, as defined in [the appendix](#appendix-moves).
+It is recommended to call upon the `super` method at the beginning of your own implementation, and you might in fact wish to use it to resolve other effects on the boards. This requires an understanding of standard move formatting, as defined in [Appendix A](#appendix-a-moves).
 
 ---
 
@@ -142,11 +155,11 @@ Override cases: whenever you wish to give a more detailed end of game message. I
 
 ---
 
-`round_counter(self) -> int`: Returns the new value of the `round` attribute after a move has been performed.
+`turn_counter(self) -> int`: Returns the new value of the `turn` attribute after a move has been performed.
 
-Default behavior: simply returns the current `round` value increased by 1.
+Default behavior: simply returns the current `turn` value increased by 1.
 
-Override cases: games with non-trivial round calculations. For example, if you wish to allow the same player to make multiple moves within the same turn. Remember to also handle this in your `next_player` method.
+Override cases: games with non-trivial turn calculations. For example, if you wish to allow the same player to make multiple moves within the same turn. Remember to also handle this in your `next_player` method.
 
 ---
 
@@ -174,7 +187,7 @@ def validate_move(self, move):
 
 It is best practice that this method assumes the received move is properly formatted, having been preprocessed by `prompt_current_player`.
 
-For more detailed informations on how moves are properly formatted, consult [the appendix](#appendix-moves).
+For more detailed informations on how moves are properly formatted, consult [Appendix A](#appendix-a-moves).
 
 ---
 
@@ -223,17 +236,17 @@ The `layout` must match the `shape`. For a shape `h, w`, the layout must be comp
 
 `place_piece(self, move : str)`: Performs the placement action specified by the `move` parameter. The specified piece is placed on the board at the speficied position, replacing whatever character was at that position beforehand.
 
-See [the appendix](#appendix-moves) for how moves are specified.
+See [Appendix A](#appendix-a-moves) for how moves are specified.
 
 ---
 
 `move_piece(self, move : str)`: Performs the movement action specified by the `move` parameter. The piece at the origin position is moved to the destination position, replacing whatever character was originally at the latter. The destination position is left blank.
 
-See [the appendix](#appendix-moves) for how moves are specified.
+See [Appendix A](#appendix-a-moves) for how moves are specified.
 
 **Notice:** This method will always place a `BLANK` space at the origin position. If the user wishes to leave another space or piece at the origin instead, this should be treated within the `perform_move` method in the `Game` subclass. The recommended way is to follow up the `move_piece` method with a call of the `place_piece` method, passing as parameter a move with the intended character to be left behind and the origin position coordinates.
 
-## Appendix: Moves
+## Appendix A: Moves
 
 Moves are one of the central elements for defining the logic of your game, as they are the means through which the game state changes. As such, it is necessary to encode them in a way that is both meaningful and easy to parse.
 
@@ -264,3 +277,16 @@ Three functions are implemented to help handling moves:
 
 * If the move is a **placement**, it returns a tuple containing the played piece as a single-character string, and the position it was played to as a tuple of integers.
 * If the move is a **movement**, it returns a tuple containing the two positions informed (the origin and the destination), both as tuples of integers.
+
+## Appendix B: AI Players
+
+Boardwalk supports any number of AI agents to play games. These must be instanced in the same Python file as the game, and passed to the game's constructor method as elements of the `ai_players` argument. This parameter is a dictionary, where the keys are the player enumerations of the respective agents. 
+
+For example, in a three player game (with player enums 0, 1 and 2), where only player 1 is human, and assuming a class `Agent` for the AI players, you would declare 
+```python
+agent_a = Agent()
+agent_b = Agent()
+game = MyGame(board, {0:agent_a, 2:agent_b})
+```
+
+By default, the only restriction Boardwalk imposes on the agents' implementation is that they have a method called `get_action`, to be called by the `prompt_current_player` method in the game loop. The `get_action` method must receive as its only argument the game state tuple (provided by the Game class's `get_state` method), and must return a string representing a valid move in the expected move format. Note that, since users can customize the game state to include more information, this allows for agents to implement strategies dependent on more than only what is provided in the standard game state.
