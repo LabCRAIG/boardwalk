@@ -110,6 +110,7 @@ Default behavior: asks the player for their move via a string input.
 Override cases: when you wish to provide a personalized prompt string (such as one that informs the current player), or when you want to preprocess the returned string. In case of override, the `super` method will probably not be used.
 
 Preprocessing the move and allowing for more flexible player input requires an understanding of standard move formatting, as defined in [Appendix A](#appendix-a-moves).
+
 ---
 
 `get_state(self) -> tuple`: Returns the current game state.
