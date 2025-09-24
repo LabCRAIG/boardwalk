@@ -120,9 +120,6 @@ def prompt_current_player(self):
 Override cases: when you wish to provide a personalized prompt string (such as one that informs the current player), or when you want to preprocess the returned string. In case of override, the `super` method will probably not be used.
 
 Preprocessing the move and allowing for more flexible player input requires an understanding of standard move formatting, as defined in [Appendix A](#appendix-a-moves).
-
-When overriding, one must account for the AI agent interface, if their use is intended. If the game is programmed with a non-standard move format, then either the agent must provide their action in that same format, or the overridden method must preprocess it to fit the defined format. For more information regarding AI agents, see [Appendix B](#appendix-b-ai-players).
-
 ---
 
 `get_state(self) -> tuple`: Returns the current game state.
@@ -296,4 +293,4 @@ agent_b = Agent()
 game = MyGame(board, {0:agent_a, 2:agent_b})
 ```
 
-By default, the only restriction Boardwalk imposes on the agents' implementation is that they have a method called `get_action`, to be called by the `prompt_current_player` method in the game loop. The `get_action` method must receive as its only argument the game state tuple (provided by the Game class's `get_state` method), and must return a string representing a valid move in the expected move format. Note that, since users can customize the game state to include more information, this allows for agents to implement strategies dependent on more than only what is provided in the standard game state.
+By default, the only restriction Boardwalk imposes on the agents' implementation is that they have a method called `get_action`, to be called by the game loop. The `get_action` method must receive as its only argument the game state tuple (provided by the Game class's `get_state` method), and must return a string representing a valid move in the expected move format. Note that, since users can customize the game state to include more information, this allows for agents to implement strategies dependent on more than only what is provided in the standard game state.
