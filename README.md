@@ -17,7 +17,7 @@ Whenever the term "user" is used in this documentation, it refers to the program
 The expected code defining a game based on this documentation follows the format:
 
 ```python
-from game import Game, Board, is_movement, is_placement, get_move_elements
+from boardwalk import Game, Board, is_movement, is_placement, get_move_elements
 <additional imports>
 
 # Game subclass definition
