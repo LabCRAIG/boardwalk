@@ -105,17 +105,7 @@ Override cases: when necessary to instantiate any additional attributes, perhaps
 
 `prompt_current_player(self) -> str`: Prompts the player to input a move and returns their input.
 
-Default behavior: asks the player for their move via a string input. In case the player is an AI agent, it gives them the game state and then waits for a move string. The standard implementation is provided below:
-
-```python
-def prompt_current_player(self):
-    if self.current_player in self.ai_players:
-        player = self.ai_players[self.current_player]
-        game_state = self.get_state()
-        return player.get_action(game_state)
-
-    return input("Your move: ")
-```
+Default behavior: asks the player for their move via a string input.
 
 Override cases: when you wish to provide a personalized prompt string (such as one that informs the current player), or when you want to preprocess the returned string. In case of override, the `super` method will probably not be used.
 
