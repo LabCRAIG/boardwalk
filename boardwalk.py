@@ -17,7 +17,11 @@ class Game():
             
             valid = False
             while not valid:
-                move = self.prompt_current_player()
+                if self.current_player in self.ai_players:
+                    agent = self.ai_players[self.current_player]
+                    move = agent.get_action(self.get_state())
+                else:
+                    move = self.prompt_current_player()
                 valid = self.validate_move(move)
 
             self.perform_move(move)
@@ -33,11 +37,6 @@ class Game():
 
     # Optionally overridable 
     def prompt_current_player(self):
-        if self.current_player in self.ai_players:
-            player = self.ai_players[self.current_player]
-            game_state = self.get_state()
-            return player.get_action(game_state)
-
         return input("Your move: ")
     
     def get_state(self):

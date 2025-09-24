@@ -69,9 +69,14 @@ Below is the code for the method, to illustrate the contexts in which the other 
 def game_loop(self):
     while True:
         print(self.board)
+        
         valid = False
         while not valid:
-            move = self.prompt_current_player()
+            if self.current_player in self.ai_players:
+                agent = self.ai_players[self.current_player]
+                move = agent.get_action(self.get_state())
+            else:
+                move = self.prompt_current_player()
             valid = self.validate_move(move)
 
         self.perform_move(move)
