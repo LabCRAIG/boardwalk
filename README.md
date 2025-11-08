@@ -59,6 +59,8 @@ By default, the `Game` class only has four attributes:
 
 These are all initialized within the class constructor. Additional variables, such as flags or counters, might be necessary to define your game states and game-specific rules. These are handled by the user when implementing the subclass.
 
+The methods of the Game class are presented below. Three methods are omitted from this section, as they are not related to the game logic or user interface. Rather, they relate to the AI agent implementation. As such, they are explained in detail in [Appendix B](#appendix-b-ai-players).
+
 #### Final methods
 
 `game_loop(self)`: This method is responsible for executing the game until its conclusion, at every turn printing the board in its current state and prompting the active player to make their move.
@@ -110,20 +112,6 @@ Default behavior: asks the player for their move via a string input.
 Override cases: when you wish to provide a personalized prompt string (such as one that informs the current player), or when you want to preprocess the returned string. In case of override, the `super` method will probably not be used.
 
 Preprocessing the move and allowing for more flexible player input requires an understanding of standard move formatting, as defined in [Appendix A](#appendix-a-moves).
-
----
-
-`get_state(self) -> tuple`: Returns the current game state.
-
-The game state is a data structure ideally represented as a tuple. This tuple has three items:
-
-* Board layout: the layout matrix of the `board` attribute. This is a numpy array of strings, as detailed in the `Board` class. For the sake of code security, return a `deepcopy` of `self.board.layout` rather than a pointer to the actual `layout` attribute.
-* Current player: the `current_player` attribute (of a type defined by the user, see the Attributes section above).
-* Additional parameters: a list of variables containing user-defined attributes, any deemed necessary to define a unique state.
-
-Default behavior: returns a tuple with the parameters, with the third element being an empty list.
-
-Override cases: when there are any additional variables necessary to differentiate a state. It is recommended to simply modify the list in the tuple returned by the `super` method.
 
 ---
 
@@ -275,13 +263,68 @@ Three functions are implemented to help handling moves:
 
 ## Appendix B: AI Players
 
-Boardwalk supports any number of AI agents to play games. These must be instanced in the same Python file as the game, and passed to the game's constructor method as elements of the `ai_players` argument. This parameter is a dictionary, where the keys are the player enumerations of the respective agents. 
+Boardwalk supports any number of AI agents as players. These agents must be instantiated in the same Python file as the game and passed to the game’s constructor through the `ai_players` argument. This parameter is a dictionary whose keys are the player enumerations corresponding to the respective agents.
 
-For example, in a three player game (with player enums 0, 1 and 2), where only player 1 is human, and assuming a class `Agent` for the AI players, you would declare 
+For example, in a three-player game (with player enums `0`, `1`, and `2`), where only player 1 is human, and assuming a class `Agent` for the AI players, you could declare:
+
 ```python
 agent_a = Agent()
 agent_b = Agent()
-game = MyGame(board, {0:agent_a, 2:agent_b})
+game = MyGame(board, {0: agent_a, 2: agent_b})
 ```
 
-By default, the only restriction Boardwalk imposes on the agents' implementation is that they have a method called `get_action`, to be called by the game loop. The `get_action` method must receive as its only argument the game state tuple (provided by the Game class's `get_state` method), and must return a string representing a valid move in the expected move format. Note that, since users can customize the game state to include more information, this allows for agents to implement strategies dependent on more than only what is provided in the standard game state.
+By default, Boardwalk imposes only one restriction on the agents’ implementation: each agent must have a method named `get_action`, which is called automatically by the game loop. This method must receive two arguments: a reference to the game object and the current game state. The method must return a string with a valid move in the input format used by the game.
+
+The game state is defined as a dictionary containing several values indexed by strings. It is informed by the `get_state` method, described below, and can therefore be customized to inform additional information by overriding the method.
+
+The two main methods which agents will use to make decisions are `possible_moves` and `next_state`, which provide information regarding the possible actions the agent can take. Both of these take a game state as input, as the agent might not necessarily want to evaluate the current game state, but instead "look ahead" at a possible future.
+
+All three methods are part of the Game class, which is why `get_action` receives a reference to the Game object. They are explained below.
+
+---
+
+`get_state(self) -> tuple`: Returns the current game state.
+
+Optionally overridable.
+
+The game state must obligatorily include three elements, with these exact names:
+
+* `board`: the layout matrix of the Game object's `board` attribute. This is a numpy array of strings, as detailed in the Board class. This returns a deep copy of `self.board.layout` rather than a pointer to the actual `layout` attribute.
+* `current_player`: the `current_player` Game attribute.
+* `turn`: the `turn` Game attribute.
+
+Custom definitions must keep these three values, and simply include additional ones. As such, it should be overridden in the following manner:
+
+```python
+def get_state(self):
+    state = super().get_state()
+    state['attribute'] = self.attribute
+    ...
+    return state
+```
+
+Note that all additional state variables must correspond to a Game class attribute defined with the exact same name as used for the dictionary key, and it is through this attribute that this value must be incorporated in the game logic. 
+
+Default behavior: returns the standard game state, with the three base values.
+
+Override cases: when there are any additional variables necessary to characterize a game state.
+
+---
+
+`possible_moves(self, state) -> list[str]`: Returns a list of all valid moves the agent can make.
+
+Must be overridden to implement AI agent compatibility.
+
+This method provides the agent with a list of strings representing all possible moves the agent could perform in the given game state. The strings should ideally be in the input format the game accepts (the same format the agent's `get_action`) method will return. 
+
+The list of possible moves is game specific, and thus must be implemented by the programmer creating the game. As such, this method is obligatory to define in order to allow AI agents to play. One must ensure that all valid moves yielded by the list would be valid in the game state provided.
+
+---
+
+`next_state(self, state, move) -> tuple[dict, bool, bool]`: Yields the results of playing the move in the informed game state.
+
+Final method, must not be overwritten.
+
+This method simulates the effects of the `move` argument, given the game state. This move must be in the input format defined by the game. The return is a tuple containing three items: a dictionary of the new game state reached by the informed move; a boolean, which is True if the move causes the game to end; and a boolean, which is True if the move causes the agent to win the game.
+
+This method is final, and therefore must not be overridden. However, it accounts for custom game state definitions, in case users want to add additional values to their state dictionary. As such, all additional game state variables must correspond directly to an attribute in the Game class with the same name. 

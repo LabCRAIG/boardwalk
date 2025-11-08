@@ -1,7 +1,8 @@
 # Example of implementing a simple game (Tic-Tac-Toe) with Boardwalk, as well as using AI agents.
 # This exemplifies the minimal implementation with only four methods.
 
-from game import Game, Board, is_movement, is_placement, get_move_elements
+from boardwalk import Game, Board, is_movement, is_placement, get_move_elements
+from random import choice
 
 class TicTacToe(Game):
     # Player enum
@@ -82,9 +83,21 @@ class TicTacToe(Game):
         
         # Winner
         return self.X if self.winner == 'X' else self.O
+    
+    def possible_moves(self, state):
+        n = self.board.width
+        piece = 'X' if self.current_player == self.X else 'O'
+
+        return [f'{piece} {i},{j}' for j in range(n) for i in range(n) if self.board[i,j] == Board.BLANK]
+    
+class RandomAgent(object):
+    def get_action(self, game, state):
+        actions = game.possible_moves(state)
+        return choice(actions)
 
 if __name__ == '__main__':
     board = Board((3,3))
-    game = TicTacToe(board)
+    rand = RandomAgent()
+    game = TicTacToe(board, ai_players={1:rand})
 
     game.game_loop()

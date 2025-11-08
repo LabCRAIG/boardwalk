@@ -17,7 +17,11 @@ class Game():
             
             valid = False
             while not valid:
-                move = self.prompt_current_player()
+                if self.current_player in self.ai_players:
+                    agent = self.ai_players[self.current_player]
+                    move = agent.get_action(self, self.get_state())
+                else:
+                    move = self.prompt_current_player()
                 valid = self.validate_move(move)
 
             self.perform_move(move)
@@ -31,13 +35,26 @@ class Game():
             self.current_player = self.next_player()
             self.turn = self.turn_counter()
 
+    def next_state(self, state, move):
+        game = deepcopy(self)
+        game.board.layout = state['board']
+
+        state.pop('board')
+        for key in state:
+            setattr(game, key, state[key])
+
+        game.perform_move(move)
+        terminal = game.game_finished()
+        if terminal:
+            winner = game.current_player == game.get_winner()
+        else:
+            game.current_player = game.next_player()
+            game.turn = game.turn_counter()
+
+        return game.get_state(), terminal, winner
+
     # Optionally overridable 
     def prompt_current_player(self):
-        if self.current_player in self.ai_players:
-            player = self.ai_players[self.current_player]
-            game_state = self.get_state()
-            return player.get_action(game_state)
-
         return input("Your move: ")
     
     def get_state(self):
@@ -62,6 +79,9 @@ class Game():
     
     def initial_player(self):
         return 0
+    
+    def possible_moves(self, state):
+        return []
     
     # Overridable
     def validate_move(self, move):
@@ -114,10 +134,11 @@ class Board():
     NULL = ' '
 
     def __init__(self, shape, layout = None):
-        self.layout = np.full(shape, self.BLANK)
         self.height, self.width = shape
             
-        if layout:
+        if layout is None:
+            self.layout = np.full(shape, self.BLANK)
+        elif type(layout) == str:
             try:
                 for i, row in enumerate(layout.split('\n')):
                     for j, c in enumerate(row):
@@ -125,6 +146,10 @@ class Board():
 
             except IndexError:
                 raise ValueError('Board layout does not match specified board shape.')
+        elif type(layout) == np.ndarray:
+            self.layout = layout
+        else:
+            raise ValueError('Invalid board layout input.')
 
     def place_piece(self, move):
         piece, (x,y) = get_move_elements(move)
