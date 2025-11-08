@@ -44,9 +44,14 @@ class Game():
             setattr(game, key, state[key])
 
         game.perform_move(move)
-        game.current_player = game.next_player()
-        game.turn = game.turn_counter()
-        return game.get_state()
+        terminal = game.game_finished()
+        if terminal:
+            winner = game.current_player == game.get_winner()
+        else:
+            game.current_player = game.next_player()
+            game.turn = game.turn_counter()
+
+        return game.get_state(), terminal, winner
 
     # Optionally overridable 
     def prompt_current_player(self):
@@ -145,9 +150,6 @@ class Board():
             self.layout = layout
         else:
             raise ValueError('Invalid board layout input.')
-            
-    def shape(self):
-        return (self.height, self.width)
 
     def place_piece(self, move):
         piece, (x,y) = get_move_elements(move)
