@@ -283,7 +283,7 @@ All three methods are part of the Game class, which is why `get_action` receives
 
 ---
 
-`get_state(self) -> tuple`: Returns the current game state.
+`get_state(self) -> dict`: Returns the current game state.
 
 Optionally overridable.
 
