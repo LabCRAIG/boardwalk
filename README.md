@@ -325,6 +325,10 @@ The list of possible moves is game specific, and thus must be implemented by the
 
 Final method, must not be overwritten.
 
-This method simulates the effects of the `move` argument, given the game state. This move must be in the input format defined by the game. The return is a tuple containing three items: a dictionary of the new game state reached by the informed move; a boolean, which is True if the move causes the game to end; and a boolean, which is True if the move causes the agent to win the game.
+This method simulates the effects of the `move` argument, given the game state. This move must be in the input format defined by the game. The return is a tuple containing three items:
+
+* new_state: a game state dictionary of the new game state reached by the informed move.
+* terminal: a boolean which is True if the move causes the game to end.
+* winner: a boolean which is True if the move causes the agent to win the game.
 
 This method is final, and therefore must not be overridden. However, it accounts for custom game state definitions, in case users want to add additional values to their state dictionary. As such, all additional game state variables must correspond directly to an attribute in the Game class with the same name. 
