@@ -136,9 +136,8 @@ class Board():
     def __init__(self, shape, layout = None):
         self.height, self.width = shape
             
-        if layout is None:
-            self.layout = np.full(shape, self.BLANK)
-        elif type(layout) == str:
+        self.layout = np.full(shape, self.BLANK, dtype=object)
+        if type(layout) == str:
             try:
                 for i, row in enumerate(layout.split('\n')):
                     for j, c in enumerate(row):
@@ -148,7 +147,7 @@ class Board():
                 raise ValueError('Board layout does not match specified board shape.')
         elif type(layout) == np.ndarray:
             self.layout = layout
-        else:
+        elif layout is not None:
             raise ValueError('Invalid board layout input.')
 
     def place_piece(self, move):
