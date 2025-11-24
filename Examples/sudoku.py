@@ -1,3 +1,8 @@
+# 6x6 Sudoku
+# Letters are used instead of numbers to allow better visualization
+# Uppercase letters are fixed on the board, while players place 
+# lowercase letters.
+
 from boardwalk import Game, Board, is_movement, is_placement, get_move_elements
 
 class Sudoku(Game):
@@ -16,27 +21,25 @@ class Sudoku(Game):
         if not is_placement(move):
             return False
         
-        num, pos = get_move_elements(move)
-        if num == Board.BLANK:
-            return len(board[pos]) == 1
-        
-        try:
-            num = int(num)
-            return 0 <= num <= 9
-        except:
+        c, pos = get_move_elements(move)
+        if board[pos] in 'ABCDEF':
             return False
+        
+        return c.lower() in 'abcdef'
         
     def game_finished(self):
         if '_' in board:
             return False
         
         n = self.board.width
-        numbers = set(range(1,n+1))
+        letters = {c for c in 'abcdef'}
 
         for row in self.board.layout:
-            pass
-            
-
+            row = [c.lower() for c in row]
+            if set(row) != letters:
+                return False
+        return True
+    
     
     def get_winner(self):
         return 0
