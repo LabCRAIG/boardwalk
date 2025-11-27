@@ -136,8 +136,7 @@ class Board():
     def __init__(self, shape, layout = None):
         self.height, self.width = shape
             
-        self.layout = np.full(shape, self.BLANK)
-
+        self.layout = np.full(shape, self.BLANK, dtype=object)
         if type(layout) == str:
             try:
                 for i, row in enumerate(layout.split('\n')):
