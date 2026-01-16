@@ -2,6 +2,8 @@ import re
 import numpy as np
 from copy import deepcopy
 from math import log10
+import pygame as pg
+from pygame import Color
 
 class Game():
     def __init__(self, board, ai_players = {}):
@@ -180,6 +182,28 @@ class Board():
     
     def __contains__(self, item):
         return item in self.layout
+    
+class BoardwalkGUI():
+    # Color definitions
+    WHITE = Color('#fefefe')
+    BLACK = Color('#000000')
+    BLUE = Color('#3344ff')
+    LIGHTBLUE = Color('#4499ff')
+    CYAN = Color('#00ffff')
+    YELLOW = Color('#fff421')
+    RED = Color('#ff1122')
+    ORANGE = Color('#ff7710')
+    GREEN = Color('#15ff22')
+    LIGHTGREEN = Color('#66ffaa')
+    LIGHTRED = Color('#ff8888')
+    PINK = Color('#ff55bf')
+    PURPLE = Color('#dd11ff')
+    GRAY = Color("#999999")
+    
+
+    def __init__(self, game : Game, piece_mapping : dict, color_key : dict = None, 
+                 board_style = 'solid'):
+        self.game = game    
     
 if __name__ == '__main__':
     pass
